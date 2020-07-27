@@ -88,9 +88,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     //modal
     const modalBtns = document.querySelectorAll('[data-modal]'),
-          modal = document.querySelector('.modal'),
-          modalClose = document.querySelector('[data-close]');
-
+          modal = document.querySelector('.modal');
+        //   modalClose = document.querySelector('[data-close]');
+          
     modalBtns.forEach(item => {
         item.addEventListener('click', () => {
             // modal.style.display = 'block';
@@ -101,14 +101,14 @@ window.addEventListener('DOMContentLoaded', () => {
             showModal();
         });
     });
-    modalClose.addEventListener('click', () => {
-        // modal.style.display = 'none';
+    // modalClose.addEventListener('click', () => {
+    //     // modal.style.display = 'none';
 
-        // modal.classList.add('hide');
-        // modal.classList.remove('show');
-        // document.body.style.overflow = '';
-        closeModal();
-    });
+    //     // modal.classList.add('hide');
+    //     // modal.classList.remove('show');
+    //     // document.body.style.overflow = '';
+    //     closeModal();
+    // });
 
     //to use toggle, add class 'show' to your modal and the following:
     //modal.classList.toggle('show');
@@ -116,7 +116,8 @@ window.addEventListener('DOMContentLoaded', () => {
  
     //closing modal by clicking on background
     modal.addEventListener('click', (e) => {
-        if (e.target === modal && modal.classList.contains('show')) {
+        if (e.target === modal && modal.classList.contains('show') ||
+            e.target.getAttribute('data-close') == '') {
             // modal.classList.add('hide');
             // modal.classList.remove('show');
             // document.body.style.overflow = '';
@@ -150,7 +151,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     //to show modal after a while from opening page by user, exploit the setTimeout method:
-    const modalTimerId = setTimeout(showModal, 5000);
+    const modalTimerId = setTimeout(showModal, 50000);
 
     //to show modal after scrolling the page to its buttom
     function showModalByScroll() {
@@ -251,7 +252,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const forms = document.querySelectorAll('form');
 
     const message = {
-        loading: 'Loading',
+        loading: 'img/form/spinner.svg',
         success: 'Thanks, we will revert to you soon!',
         failure: 'Something went wrong!'
     };
@@ -264,10 +265,14 @@ window.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const statusMessage = document.createElement('div');
-            statusMessage.classList.add('status');
-            statusMessage.textContent = message.loading;
-            form.append(statusMessage);
+            const statusMessage = document.createElement('img');
+            statusMessage.src = message.loading;
+            statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            // form.append(statusMessage);
+            form.insertAdjacentElement('afterend', statusMessage);
 
             const request = new XMLHttpRequest();
             request.open('POST', 'server.php');
@@ -295,16 +300,37 @@ window.addEventListener('DOMContentLoaded', () => {
             request.addEventListener('load', () => {
                 if (request.status === 200) {
                     console.log(request.response);
-                    statusMessage.textContent = message.success;
+                    showThanksModal(message.success);
                     form.reset();
-                    setTimeout(() => {
-                        statusMessage.remove();
-                    }, 2000);
+                    statusMessage.remove();
                 } else {
-                    statusMessage.textContent = message.failure;
+                    showThanksModal(message.failure);
                 }
             });
         });
-  
+    }
+    function showThanksModal(message) {
+        const prevModalDialog = document.querySelector('.modal__dialog');
+
+        prevModalDialog.classList.add('hide');
+        showModal();
+
+        const thanksModal = document.createElement('div');
+        thanksModal.classList.add('modal__dialog');
+        thanksModal.innerHTML = `
+            <div class="modal__content">
+                <div class="modal__close" data-close>×</div>
+                <div class="modal__title">${message}</div>
+            </div>
+        
+        `;
+        document.querySelector('.modal').append(thanksModal);
+        setTimeout(() => {
+            thanksModal.remove();
+            prevModalDialog.classList.add('show');
+            prevModalDialog.classList.remove('hide');
+            closeModal();
+        }, 4000);
+
     }
 });
